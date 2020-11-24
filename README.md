@@ -36,4 +36,6 @@ Clone this repo and cd, then
     sudo docker build -t storjwidget .
     docker run -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 storjwidget 
 
+## Next Steps:
+When your storjWidget-Exporter is up and running and returning stats of your node(s) at http://localhost:3123/bandwidth, you can continue and set up your storjWidget [storjWidget](https://github.com/striker43/storjWidget).
 
