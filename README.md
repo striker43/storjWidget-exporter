@@ -4,10 +4,9 @@
 
 StorjWidget-Exporter starts a python Flask server which pulls information from storj node api for `node`, `satellite` and `payout` metrics and aggregates the data. The endpoint is returning the total `ingress` and `egress` over all nodes, the `estimated daily earnings` and the `current months earnings`, `total space used` and `total space available`, `total number of queried nodes` and `online count of queried nodes`.
 
+The Exporter's endpoint will be available at http://localhost:3123/bandwidth
+
 Tested with storj node version `1.16.1`
-
-
-
 
 ## Support
 Feel free to raise issues if you find them and also raise a pull request if you'd like to contribute.
