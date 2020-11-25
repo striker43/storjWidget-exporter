@@ -1,6 +1,5 @@
 FROM python:3.7-alpine
 
-COPY requirements.txt /
 RUN pip install flask requests
 
 RUN mkdir -p /usr/src/app
