@@ -23,10 +23,14 @@ If you wish to support my work, please find my eth/storj wallet address below or
 * Make sure you have `-p 127.0.0.1:14002:14002` in your storagenode container docker run command to allow local connections to your node's api
 
 ### Installation
-#### Docker installation
+#### Docker installation (x86-64)
+##### Create docker volume where daily payout data will be stored
+
+    docker volume create --name storjWidgetVolume
+    
 ##### Run latest build from DockerHub
 
-    docker run -d --restart always -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 mb17/storjwidget 
+    docker run -d --restart always -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume mb17/storjwidget 
     
 ###### As an environment parameter `NODES_LIST` you need to add a comma seperated list of your node's ip addresses together with their storj api ports.
     
