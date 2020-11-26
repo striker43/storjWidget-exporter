@@ -23,22 +23,27 @@ If you wish to support my work, please find my eth/storj wallet address below or
 * Make sure you have `-p 127.0.0.1:14002:14002` in your storagenode container docker run command to allow local connections to your node's api
 
 ### Installation
-#### Docker installation (x86-64)
+#### Docker installation
 ##### Create docker volume where daily payout data will be stored
 
     docker volume create --name storjWidgetVolume
     
-##### Run latest build from DockerHub
+##### Run latest build from DockerHub for x86-64
 
     docker run -d --restart always -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume mb17/storjwidget 
+    
+##### OR run latest build from DockerHub for raspberry pi (arm)
+
+    docker run -d --restart always -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume mb17/storjwidget:raspberry 
     
 ###### As an environment parameter `NODES_LIST` you need to add a comma seperated list of your node's ip addresses together with their storj api ports.
     
 ##### OR build your own
 Clone this repo and cd, then
 
+    docker volume create --name storjWidgetVolume
     sudo docker build -t storjwidget .
-    docker run -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 storjwidget 
+    docker run -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume storjwidget 
 
 ## Next Steps:
 When your storjWidget-Exporter is up and running and returning stats of your node(s) at http://localhost:3123/bandwidth, you can continue and set up your [storjWidget](https://github.com/striker43/storjWidget).
