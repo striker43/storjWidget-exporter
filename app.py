@@ -9,7 +9,17 @@ from requests.adapters import HTTPAdapter
 
 app = Flask(__name__)
 
+persistencePath = '/var/www/storjWidgetVolume/payoutData.txt'
+
 nodes = os.environ.get('NODES_LIST', '').split(',')
+
+payoutData = {}
+payoutData['day'] = None
+try:
+  with open(persistencePath) as json_file:
+    payoutData = json.load(json_file)
+except OSError:
+    print("ERROR")
 
 def getStringWithUnit(value):
   if(value < 1000):
@@ -45,14 +55,17 @@ def getPayoutEstimationMonth(payoutResponse, data):
   data['estimatedPayoutTotal'] += payoutResponse['currentMonth']['egressBandwidthPayout'] + payoutResponse['currentMonth']['egressRepairAuditPayout'] + payoutResponse['currentMonth']['diskSpacePayout']
   return data
 
-def getPayoutEstimationToday(snoResponse, satellitesResponse, data):
-  relevantDay = getRelevantDay(satellitesResponse)
+def getPayoutEstimationToday(data):
+  actualDay = str(date.today())
+  if(payoutData['day']  != actualDay):
+    payoutData[actualDay] = data['estimatedPayoutTotal']
+    payoutData['day']  = actualDay
+    with open(persistencePath, 'w') as outfile:
+      json.dump(payoutData, outfile)
 
-  diskAveragePayout = ((snoResponse['diskSpace']['used']/1000000000000))/720*(datetime.datetime.now().hour + (datetime.datetime.now().minute/60))*1.5
-  egressPayout = (satellitesResponse['bandwidthDaily'][relevantDay]['egress']['usage']/1000000000000)*20
-  repairPayout = ((satellitesResponse['bandwidthDaily'][relevantDay]['egress']['repair']/1000000000000) + (satellitesResponse['bandwidthDaily'][relevantDay]['egress']['audit']/1000000000000))*10
-  
-  data['estimatedPayoutToday'] += (diskAveragePayout + egressPayout + repairPayout)
+  print(payoutData)
+  print(data)
+  data['estimatedPayoutToday'] = (data['estimatedPayoutTotal'] - payoutData[actualDay])
   return data
 
 def getSpaceInfo(snoResponse, data):
@@ -65,10 +78,8 @@ def httpRequest(ipWithPort, path):
     response = requests.get('http://' + ipWithPort + '/api/' + path, timeout=5)
     return response.json()
   except requests.exceptions.Timeout:
-    print("TIMEOUT ERROR")
     return None
   except requests.exceptions.ConnectionError:
-    print("CONNECTION ERROR")
     return None
 
 @app.route('/bandwidth')
@@ -91,13 +102,14 @@ def get_data():
       
       getBandwidthData(satellitesResponse, data)
       getPayoutEstimationMonth(payoutResponse, data)
-      getPayoutEstimationToday(snoResponse, satellitesResponse, data)
       getSpaceInfo(snoResponse, data)
     else:
       data['nodesOnline'] -= 1
   
+  getPayoutEstimationToday(data)
+
   data['estimatedPayoutTotal'] = float("{:.2f}".format(data['estimatedPayoutTotal']/100))
-  data['estimatedPayoutToday'] = float("{:.2f}".format(data['estimatedPayoutToday']))
+  data['estimatedPayoutToday'] = float("{:.2f}".format(data['estimatedPayoutToday']/100))
   data['spaceUsed'] = float("{:.2f}".format(data['spaceUsed']))
   data['spaceAvailable'] = float("{:.2f}".format(data['spaceAvailable']))
 
