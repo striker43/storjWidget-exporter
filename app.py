@@ -19,7 +19,7 @@ try:
   with open(persistencePath) as json_file:
     payoutData = json.load(json_file)
 except OSError:
-    print("ERROR")
+    print("ERROR: Could not read " + persistencePath)
 
 def getStringWithUnit(value):
   if(value < 1000):
