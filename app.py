@@ -1,18 +1,22 @@
 from flask import Flask
 import requests
 import os
-import time
-import datetime
+import atexit
 import json
 from datetime import date
 from requests.adapters import HTTPAdapter
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 
-persistencePath = '/var/www/storjWidgetVolume/payoutData.txt'
+if os.environ.get('ENV', 'prod') == 'local':
+  persistencePath = 'payout_data.json'
+else:
+  persistencePath = '/var/www/storjWidgetVolume/payout_data.json'
 
 nodes = os.environ.get('NODES_LIST', '').split(',')
 
+results_cache = {}
 payoutData = {}
 payoutData['day'] = None
 try:
@@ -63,8 +67,6 @@ def getPayoutEstimationToday(data):
     with open(persistencePath, 'w') as outfile:
       json.dump(payoutData, outfile)
 
-  print(payoutData)
-  print(data)
   data['estimatedPayoutToday'] = (data['estimatedPayoutTotal'] - payoutData[actualDay])
   return data
 
@@ -81,9 +83,8 @@ def httpRequest(ipWithPort, path):
     return None
   except requests.exceptions.ConnectionError:
     return None
-
-@app.route('/bandwidth')
-def get_data():
+  
+def update_data():
   data = {}
   data['ingress'] = 0
   data['egress'] = 0
@@ -113,4 +114,24 @@ def get_data():
   data['spaceUsed'] = float("{:.2f}".format(data['spaceUsed']))
   data['spaceAvailable'] = float("{:.2f}".format(data['spaceAvailable']))
 
-  return json.dumps(addUnits(data))
+  addUnits(data)
+  
+  global results_cache
+  results_cache = data
+
+  print("updated data.")
+
+
+# Query all nodes every n seconds and hold the results in memory for faster serving to the widget
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=update_data, trigger="interval", seconds=60)
+scheduler.start()
+
+# Shut down the scheduler when exiting the app
+atexit.register(lambda: scheduler.shutdown())
+
+update_data()
+
+@app.route('/bandwidth')
+def get_data():
+  return results_cache
