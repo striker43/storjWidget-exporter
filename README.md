@@ -6,7 +6,7 @@ StorjWidget-Exporter starts a python Flask server which pulls information from s
 
 The Exporter's endpoint will be available at http://localhost:3123/bandwidth
 
-Tested with storj node version `1.16.1`
+Tested with storj node version `1.67.3`
 
 ## Support
 Feel free to raise issues if you find them and also raise a pull request if you'd like to contribute.
@@ -28,14 +28,10 @@ If you wish to support my work, please find my eth/storj wallet address below or
 
     docker volume create --name storjWidgetVolume
     
-##### Run latest build from DockerHub for x86-64
+##### Run latest build from DockerHub
 
-    docker run -d --restart always -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume mb17/storjwidget 
-    
-##### OR run latest build from DockerHub for raspberry pi (arm)
-
-    docker run -d --restart always -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume mb17/storjwidget:raspberry 
-    
+    docker run -d --restart always --privileged -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume mb17/storjwidget 
+       
 ###### As an environment parameter `NODES_LIST` you need to add a comma seperated list of your node's ip addresses together with their storj api ports.
     
 ##### OR build your own
@@ -43,7 +39,7 @@ Clone this repo and cd, then
 
     docker volume create --name storjWidgetVolume
     sudo docker build -t storjwidget .
-    docker run -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume storjwidget 
+    docker run --privileged -p 3123:3123 -e NODES_LIST=192.168.188.59:14002,myNodesIp.com:14002 -v storjWidgetVolume:/var/www/storjWidgetVolume storjwidget 
 
 ## Next Steps:
 When your storjWidget-Exporter is up and running and returning stats of your node(s) at http://localhost:3123/bandwidth, you can continue and set up your [storjWidget](https://github.com/striker43/storjWidget).
