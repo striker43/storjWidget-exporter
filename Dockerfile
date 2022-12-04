@@ -1,7 +1,10 @@
-FROM python:3.11-alpine
+FROM python:3.7
 
-RUN pip install flask requests
-RUN pip install apscheduler
+#RUN apk update && apk upgrade
+
+RUN /usr/local/bin/python -m pip install --default-timeout=100 --upgrade pip
+RUN pip install --default-timeout=100 flask requests
+RUN pip install --default-timeout=100 apscheduler
 
 RUN mkdir -p /usr/src/app
 ADD ./app.py /usr/src/app/app.py
