@@ -4,7 +4,6 @@ import os
 import atexit
 import json
 from datetime import date
-from requests.adapters import HTTPAdapter
 from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
@@ -97,15 +96,16 @@ def update_data():
 
   for ip in nodes:
     snoResponse = httpRequest(ip, 'sno')
-    if(snoResponse != None):
-      satellitesResponse = httpRequest(ip, 'sno/satellites')
-      payoutResponse = httpRequest(ip, 'sno/estimated-payout')
-      
+    satellitesResponse = httpRequest(ip, 'sno/satellites')
+    payoutResponse = httpRequest(ip, 'sno/estimated-payout')
+    
+    try:
       getBandwidthData(satellitesResponse, data)
       getPayoutEstimationMonth(payoutResponse, data)
       getSpaceInfo(snoResponse, data)
-    else:
+    except:
       data['nodesOnline'] -= 1
+      print(f'WARNING: {ip} seems to be offline or has a problem.')
   
   getPayoutEstimationToday(data)
 
@@ -119,7 +119,7 @@ def update_data():
   global results_cache
   results_cache = data
 
-  print("updated data.")
+  print("INFO: Updated data.")
 
 
 # Query all nodes every n seconds and hold the results in memory for faster serving to the widget
