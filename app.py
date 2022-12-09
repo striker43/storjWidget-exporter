@@ -65,6 +65,7 @@ def getPayoutEstimationToday(data):
     payoutData['day']  = actualDay
     with open(persistencePath, 'w') as outfile:
       json.dump(payoutData, outfile)
+      print(f"INFO: Wrote new entry for {payoutData['day']}: {data['estimatedPayoutTotal']}")
 
   data['estimatedPayoutToday'] = (data['estimatedPayoutTotal'] - payoutData[actualDay])
   return data
