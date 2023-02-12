@@ -91,7 +91,7 @@ def getPayoutEstimationMonth(payoutResponse, data):
 
 def getPayoutEstimationToday(data):
     actualDay = str(date.today())
-    if(payoutData['day'] != actualDay):
+    if((payoutData['day'] != actualDay) and (data['nodesOnline'] == data['totalNodesCount'])):
         payoutData[actualDay] = data['estimatedPayoutTotal']
         payoutData['day'] = actualDay
         with open(f"{PERSISTENCE_DIR}/payout_data.json", 'w') as outfile:
