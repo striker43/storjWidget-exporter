@@ -91,20 +91,30 @@ def getPayoutEstimationMonth(payoutResponse, data):
 
 
 def getPayoutEstimationToday(data):
-    actualDay = str(date.today())
-    if((payoutData['day'] != actualDay) and (data['nodesOnline'] == data['totalNodesCount'])):
-        payoutData[actualDay] = data['estimatedPayoutTotal']
-        payoutData['day'] = actualDay
-        with open(f"{PERSISTENCE_DIR}/payout_data.json", 'w') as outfile:
-            json.dump(payoutData, outfile)
-            log(payoutData)
-            log(
-                f"INFO: Wrote new entry for {payoutData['day']}: {data['estimatedPayoutTotal']}")
+    """Will return 0 in case not all nodes are available during day-change.
 
-        data['estimatedPayoutToday'] = (
-            data['estimatedPayoutTotal'] - payoutData[actualDay])
-    else:
-        data['estimatedPayoutToday'] = 0
+    Args:
+        data (dict): Dict containing all current data.
+
+    Returns:
+        dict: Dict containing all current data with updated field 'estimatedPayoutToday'.
+    """
+    actualDay = str(date.today())
+    if(payoutData['day'] != actualDay):
+        if(data['nodesOnline'] == data['totalNodesCount']):
+            payoutData[actualDay] = data['estimatedPayoutTotal']
+            payoutData['day'] = actualDay
+            with open(f"{PERSISTENCE_DIR}/payout_data.json", 'w') as outfile:
+                json.dump(payoutData, outfile)
+                log(payoutData)
+                log(
+                    f"INFO: Wrote new entry for {payoutData['day']}: {data['estimatedPayoutTotal']}")
+        else:
+            data['estimatedPayoutToday'] = 0
+            return data
+
+    data['estimatedPayoutToday'] = (
+        data['estimatedPayoutTotal'] - payoutData[actualDay])
     return data
 
 
@@ -171,7 +181,7 @@ def update_data():
 
 # Query all nodes every n seconds and hold the results in memory for faster serving to the widget
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=update_data, trigger="interval", seconds=60)
+scheduler.add_job(func=update_data, trigger="interval", seconds=315)
 scheduler.start()
 
 # Shut down the scheduler when exiting the app
