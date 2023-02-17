@@ -1,8 +1,9 @@
+import os
+import os.path
 from logging import exception
 from mimetypes import init
 from flask import Flask
 import requests
-import os
 import atexit
 import json
 from datetime import date, datetime
@@ -100,8 +101,10 @@ def getPayoutEstimationToday(data):
             log(
                 f"INFO: Wrote new entry for {payoutData['day']}: {data['estimatedPayoutTotal']}")
 
-    data['estimatedPayoutToday'] = (
-        data['estimatedPayoutTotal'] - payoutData[actualDay])
+        data['estimatedPayoutToday'] = (
+            data['estimatedPayoutTotal'] - payoutData[actualDay])
+    else:
+        data['estimatedPayoutToday'] = 0
     return data
 
 
@@ -174,6 +177,13 @@ scheduler.start()
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
+# Check on startup, if persistence json file exists
+if not (os.path.isfile(f"{PERSISTENCE_DIR}/payout_data.json")):
+    with open(f"{PERSISTENCE_DIR}/payout_data.json", 'w') as outfile:
+        json.dump(payoutData, outfile)
+        log("Created empty json file because it does not exist.")
+
+# Query data before starting the webserver
 update_data()
 
 
